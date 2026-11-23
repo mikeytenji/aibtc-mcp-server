@@ -184,20 +184,10 @@ export function buildBtcTransaction(
     throw new Error("No confirmed UTXOs available");
   }
 
-  // Calculate total available
-  const totalAvailable = sortedUtxos.reduce((sum, utxo) => sum + utxo.value, 0);
-
-  // Estimate transaction size with change output
-  const estimatedVsize = estimateTxSize(sortedUtxos.length, 2);
-  const estimatedFee = Math.ceil(estimatedVsize * feeRate);
-
-  // Check if we have enough funds
-  const requiredTotal = amount + estimatedFee;
-  if (totalAvailable < requiredTotal) {
-    throw new Error(
-      `Insufficient funds: have ${totalAvailable} sats, need ${requiredTotal} sats (${amount} + ${estimatedFee} fee)`
-    );
-  }
+  // Affordability is enforced by the coin-selection loop below, which
+  // prices the fee on the UTXOs actually selected (largest-first, stopping
+  // as soon as the target is met) instead of assuming every confirmed
+  // UTXO will be spent.
 
   // Select UTXOs using simple accumulator
   let selectedTotal = 0;
